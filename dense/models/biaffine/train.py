@@ -50,9 +50,9 @@ def main(sys_args):
     parser.add_argument('--batch_size', type=int, default=5000,
                         help='mini-batch size in number of tokens')
     parser.add_argument('--max_iter', type=int, default=50000,
-                        help='number of training epochs')
+                        help='number of training iterations')
     parser.add_argument('--eval_iter', type=int, default=100,
-                        help='epoch interval to evaluate')
+                        help='iteration interval to evaluate')
 
     parser.add_argument('--word_dim', type=int, default=100,
                         help='word embedding dimension')
