@@ -249,7 +249,7 @@ class ComputeMasks(Layer):
 class FixEmbedding(Layer):
     def __init__(self, embeddings, **kwargs):
         super(FixEmbedding, self).__init__(**kwargs)
-        embeddings /= np.std(embeddings)
+        embeddings = embeddings/np.std(embeddings)
         self.E = theano.shared(value=embeddings.astype(theano.config.floatX),
                                name='%s_E' % self.name,
                                borrow=True)
@@ -473,6 +473,8 @@ class DeNSeParser(object):
         n_dev_correct_label = 0
         result_edge = list()
         result_label = list()
+        edge_prob = list()
+        label_prob = list()
 
         batch_idx = dev_data.get_batches(batch_size, shuffle=False)
         for b, idx in enumerate(batch_idx):
@@ -490,8 +492,12 @@ class DeNSeParser(object):
             output = self.model.run_batch(*vars)
             pred_edge = output['edge_output']
             pred_label = output['label_output']
+            pred_edge_prob = output['edge_probs']
+            pred_label_prob = output['label_probs']
             result_edge.extend(np.split(pred_edge, len(pred_edge)))
             result_label.extend(np.split(pred_label, len(pred_label)))
+            edge_prob.extend(np.split(pred_edge_prob, len(pred_edge_prob)))
+            label_prob.extend(np.split(pred_label_prob, len(pred_label_prob)))
             end = time.time()
 
             dev_time += end - start
@@ -507,7 +513,7 @@ class DeNSeParser(object):
             dev_uas, dev_las, dev_rate)
         sys.stdout.flush()
 
-        return dev_uas, dev_las, result_edge, result_label
+        return dev_uas, dev_las, result_edge, result_label, edge_prob, label_prob
 
     def parse(self, test_data, batch_size=10):
         if len(test_data.data) == 4:
@@ -526,6 +532,8 @@ class DeNSeParser(object):
         n_test_tokens = 0
         result_edge = list()
         result_label = list()
+        edge_prob = list()
+        label_prob = list()
 
         batch_idx = test_data.get_batches(batch_size, shuffle=False)
         for b, idx in enumerate(batch_idx):
@@ -543,8 +551,12 @@ class DeNSeParser(object):
             output = self.model.run_batch(*vars)
             pred_edge = output['edge_output']
             pred_label = output['label_output']
+            pred_edge_prob = output['edge_probs']
+            pred_label_prob = output['label_probs']
             result_edge.extend(np.split(pred_edge, len(pred_edge)))
             result_label.extend(np.split(pred_label, len(pred_label)))
+            edge_prob.extend(np.split(pred_edge_prob, len(pred_edge_prob)))
+            label_prob.extend(np.split(pred_label_prob, len(pred_label_prob)))
             end = time.time()
 
             test_time += end - start
@@ -555,4 +567,4 @@ class DeNSeParser(object):
         print 'Parsed %d sentences, rate: %6.1f sents/s' % (n_test_sents, test_rate)
         sys.stdout.flush()
 
-        return result_edge, result_label
+        return result_edge, result_label, edge_prob, label_prob
