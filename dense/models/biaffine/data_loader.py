@@ -1,4 +1,5 @@
 import numpy as np
+import re
 
 from conll import CoNLLFile
 from vocab import Vocab
@@ -38,15 +39,20 @@ class DataLoader(object):
             labels = list()
             for line in block:
                 items = line.rstrip().split('\t')
-                if len(items) < 10:
-                    print line
-                    raise Exception('Malformed CONLL file: wrong number of fields: ' + str(len(items)))
-                if self.lowercase:
-                    items[1] = items[1].lower()
-                words.append(items[1])
-                tags.append(items[4])
-                heads.append(int(items[6]))
-                labels.append(items[7])
+                isln = re.match("^[0-9]+$",items[0])
+                # we ignore comments
+                if isln:
+                    if len(items) < 10:
+                        print line
+                        raise Exception('Malformed CONLL file: wrong number of fields: ' + str(len(items)))
+                    if self.lowercase:
+                        items[1] = items[1].lower()
+                    words.append(items[1])
+                    tags.append(items[4])
+                    if not re.match("^[0-9]+$",items[6]):
+                       items[6]="0"
+                    heads.append(int(items[6]))
+                    labels.append(items[7])
             all_words.append(words)
             all_tags.append(tags)
             all_heads.append(heads)

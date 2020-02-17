@@ -22,6 +22,8 @@ def main(sys_args):
 
     parser.add_argument('--batch_size', type=int, default=50,
                         help='mini-batch size')
+    parser.add_argument('--output_probs', type=bool, default=False,
+                        help='output probabilities')
 
     args = parser.parse_args(sys_args)
     evaluate(args)

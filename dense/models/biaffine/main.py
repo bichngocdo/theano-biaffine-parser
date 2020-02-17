@@ -4,6 +4,8 @@ import os.path
 import sys
 
 import numpy as np
+import theano
+import theano.tensor as T
 
 from batch_generators import SimpleBatch
 from bucketing import Bucketing
@@ -143,10 +145,10 @@ def evaluate(args):
     dev_dataset = Dataset(dev_data, dev_raw_data, SimpleBatch(len(dev_data[0])))
     print 'Load data from file %s, no. sentences: %d' % (args.test_file, len(dev_data[0]))
 
-    _, _, result_heads, result_labels = parser.evaluate(dev_data=dev_dataset, batch_size=args.batch_size)
+    _, _, result_heads, result_labels, edge_probs, label_probs = parser.evaluate(dev_data=dev_dataset, batch_size=args.batch_size)
     if args.output_file is not None:
         with open(args.output_file, 'w') as f:
-            write_result(f, data_loader, dev_raw_data[0], dev_raw_data[1], result_heads, result_labels)
+            write_result(f, data_loader, dev_raw_data[0], dev_raw_data[1], result_heads, result_labels, edge_probs, label_probs, args.output_probs)
 
 
 def parse(args):
@@ -171,14 +173,20 @@ def parse(args):
                 break
             data = data_loader.load(raw_data)
             dataset = Dataset(data, raw_data, SimpleBatch(len(data[0])))
-            result_heads, result_labels = parser.parse(test_data=dataset, batch_size=args.batch_size)
-            write_result(f_out, data_loader, raw_data[0], raw_data[1], result_heads, result_labels)
+            result_heads, result_labels, edge_probs, label_probs = parser.parse(test_data=dataset, batch_size=args.batch_size)
+            write_result(f_out, data_loader, raw_data[0], raw_data[1], result_heads, result_labels,edge_probs,label_probs,args.output_probs)
 
 
-def write_result(f, data_loader, words, tags, heads, label_ids):
-    for word, tag, head, label_id in zip(words, tags, heads, label_ids):
-        for i in range(len(word)):
-            label = data_loader.label_vocab.lookup(label_id[0][i + 1])
-            f.write(
+def write_result(f, data_loader, words, tags, heads, label_ids, edge_probs, label_probs, output_probs):
+    for word, tag, head, label_id, edge_prob, label_prob in zip(words, tags, heads, label_ids, edge_probs, label_probs):
+        if not output_probs:
+            for i in range(len(word)):
+                label = data_loader.label_vocab.lookup(label_id[0][i + 1])
+                f.write(
                 '%d\t%s\t_\t_\t%s\t_\t%d\t%s\t_\t_\n' % ((i + 1), word[i], tag[i], head[0][i + 1], label))
+        else:
+            for i in range(len(word)):
+                label = data_loader.label_vocab.lookup(label_id[0][i + 1])
+                f.write(
+                '%d\t%s\t_\t_\t%s\t_\t%d\t%s\t%3.3f\t%3.3f\n' % ((i + 1), word[i], tag[i], head[0][i + 1], label, np.max(edge_prob[0][i+1]),np.max(label_prob[0][i+1])))
         f.write('\n')
