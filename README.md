@@ -5,7 +5,7 @@ A Theano implementation of the biaffine parser in paper "Deep Biaffine Attention
 
 ## Installation
 
-Requirements: python-2.7, theano (developed with version 0.8X), numpy
+Requirements: Python 2.7, theano (developed with version 0.8X), numpy
 
 Config `theano` to [run with GPU](http://deeplearning.net/software/theano_versions/0.8.X/tutorial/using_gpu.html). The pre-trained model used [CUDA backend](http://deeplearning.net/software/theano_versions/0.8.X/tutorial/using_gpu.html#cuda-backend) (`device=gpu`) and have not been tested if it can be run on the [GpuArray backend](http://deeplearning.net/software/theano_versions/0.8.X/tutorial/using_gpu.html#gpuarray-backend) (`device=cuda`).
 

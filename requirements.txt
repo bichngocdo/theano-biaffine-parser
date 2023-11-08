@@ -1,2 +1,2 @@
-theano
-numpy
+numpy==1.16.6
+theano==0.8.2
